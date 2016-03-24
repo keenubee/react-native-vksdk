@@ -1,5 +1,5 @@
 #import "RCTVkSdkLoginManager.h"
-#import "VKSdk/VKSdk.h"
+#import "VKSdk.h"
 #import <RCTUtils.h>
 
 @implementation RCTVkSdkLoginManager
