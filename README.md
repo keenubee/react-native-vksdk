@@ -95,5 +95,13 @@ Vk.authorize()
     
 // logout
 Vk.logout();
+
+// api request
+Vk.callMethod('users.get', {user_ids: 1})
+    .then((result) => {
+        // your code here
+    }, (error) => {
+        // your code here
+    });
     
 ```

@@ -43,6 +43,32 @@ RCT_EXPORT_METHOD(logout)
   [VKSdk forceLogout];
 };
 
+RCT_EXPORT_METHOD(callMethodWithParams:(NSString *)methodName
+                  andParameters:(NSDictionary *)parameters
+                  andJsCallback:(RCTResponseSenderBlock)jsCallback
+                  )
+{
+  NSLog(@"methodName: %@, params: %@", methodName, parameters);
+
+  self->callback = jsCallback;
+  VKRequest *request = [VKRequest requestWithMethod:methodName andParameters:parameters];
+
+  [request executeWithResultBlock:^(VKResponse *response) {
+    NSLog(@"Json result: %@", response.json);
+
+    self->callback(@[[NSNull null], response.json]);
+  } errorBlock:^(NSError * error) {
+    if (error.code != VK_API_ERROR) {
+      [error.vkError.request repeat];
+    } else {
+      NSLog(@"VK error: %@", error);
+
+      NSDictionary *jsError = [self _NSError2JS:error];
+      self->callback(@[jsError, [NSNull null]]);
+    }
+  }];
+};
+
 #pragma mark VKSdkDelegate
 
 - (void)vkSdkAccessAuthorizationFinishedWithResult:(VKAuthorizationResult *)result {
@@ -60,7 +86,6 @@ RCT_EXPORT_METHOD(logout)
 
 - (void)vkSdkUserAuthorizationFailed:(VKError *)error {
   NSLog(@"vkSdkUserAuthorizationFailed %@", error);
-  self->callback(@[error, [NSNull null]]);
 }
 
 #pragma mark VKSdkUIDelegate

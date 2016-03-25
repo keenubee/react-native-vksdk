@@ -28,5 +28,22 @@ module.exports = {
      */
     logout: function() {
         VkSdkLoginManager.logout();
+    },
+
+    /**
+     * @param {string} methodName
+     * @param {Object} [params]
+     * @returns {Promise}
+     */
+    callMethod: function(methodName, params) {
+        return new Promise(function(resolve, reject) {
+            VkSdkLoginManager.callMethodWithParams(methodName, params || {}, function(error, result) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
 };
