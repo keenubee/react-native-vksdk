@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/doochik/react-native-vksdk.git"
   },
-  "main": "index.ios.js",
+  "main": "index.js",
   "peerDependencies": {
     "react-native": ">=0.12.0"
   },
