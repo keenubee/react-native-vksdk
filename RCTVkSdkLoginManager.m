@@ -113,7 +113,7 @@ RCT_EXPORT_METHOD(callMethodWithParams:(NSString *)methodName
 
 - (void)_authorize
 {
-  NSArray *SCOPE = @[VK_PER_FRIENDS, VK_PER_EMAIL];
+  NSArray *SCOPE = @[VK_PER_FRIENDS, VK_PER_EMAIL, VK_PER_GROUPS];
   [VKSdk wakeUpSession:SCOPE completeBlock:^(VKAuthorizationState state, NSError *error) {
     if (state == VKAuthorizationAuthorized) {
       // VKAuthorizationAuthorized - means a previous session is okay, and you can continue working with user data.
