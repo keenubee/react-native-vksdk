@@ -123,8 +123,7 @@ public class VkSdkLoginManager extends ReactContextBaseJavaModule implements Act
 
 	@ReactMethod
 	public void getFriendsListWithFields(String userFields, final Callback callback) {
-		Log.w(TAG, userFields);
-		VKRequest getFriendsRequest = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, "sex,bdate,city"));
+		VKRequest getFriendsRequest = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, userFields));
 		getFriendsRequest.executeWithListener(new VKRequest.VKRequestListener() {
 			@Override
 			public void onComplete(VKResponse response) {
