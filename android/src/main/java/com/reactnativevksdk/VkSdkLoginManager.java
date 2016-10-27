@@ -1,9 +1,9 @@
 package com.reactnativevksdk;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -165,26 +165,6 @@ public class VkSdkLoginManager extends ReactContextBaseJavaModule implements Act
 
 	}
 
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (loginCallback != null) {
-			VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
-				@Override
-				public void onResult(VKAccessToken res) {
-					// User passed Authorization
-					loginCallback.invoke(null, buildResponseData());
-					loginCallback = null;
-				}
-
-				@Override
-				public void onError(VKError error) {
-					loginCallback.invoke(formatErrorMessage(error), null);
-					loginCallback = null;
-				}
-			});
-		}
-	}
-
 	private String formatErrorMessage(VKError error) {
 		String errorMessage = error.errorMessage;
 
@@ -298,5 +278,30 @@ public class VkSdkLoginManager extends ReactContextBaseJavaModule implements Act
 		}
 
 		return writableArray;
+	}
+
+	@Override
+	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+		if (loginCallback != null) {
+			VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
+				@Override
+				public void onResult(VKAccessToken res) {
+					// User passed Authorization
+					loginCallback.invoke(null, buildResponseData());
+					loginCallback = null;
+				}
+
+				@Override
+				public void onError(VKError error) {
+					loginCallback.invoke(formatErrorMessage(error), null);
+					loginCallback = null;
+				}
+			});
+		}
+	}
+
+	@Override
+	public void onNewIntent(Intent intent) {
+
 	}
 }
