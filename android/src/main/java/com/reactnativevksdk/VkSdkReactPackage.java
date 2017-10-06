@@ -17,7 +17,6 @@ public class VkSdkReactPackage implements ReactPackage {
 		return Arrays.<NativeModule>asList(new VkSdkLoginManager(reactContext));
 	}
 
-	@Override
 	public List<Class<? extends JavaScriptModule>> createJSModules() {
 		return Collections.emptyList();
 	}
