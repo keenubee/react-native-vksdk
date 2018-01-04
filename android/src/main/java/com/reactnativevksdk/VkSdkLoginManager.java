@@ -182,6 +182,7 @@ public class VkSdkLoginManager extends ReactContextBaseJavaModule implements Act
 
 		credentials.putString("token", token.accessToken);
 		credentials.putString("userId", token.userId);
+		credentials.putString("email", token.email);
 		response.putMap("credentials", credentials);
 		return response;
 	}
