@@ -166,10 +166,10 @@ public class VkSdkLoginManager extends ReactContextBaseJavaModule implements Act
 	}
 
 	private String formatErrorMessage(VKError error) {
-		String errorMessage = error.errorMessage;
+		String errorMessage = "Unknown error";
 
-		if (errorMessage == null)
-			errorMessage = "Unknown error";
+		if (error != null && error.errorMessage != null)
+			errorMessage = error.errorMessage;
 
 		return errorMessage;
 	}
