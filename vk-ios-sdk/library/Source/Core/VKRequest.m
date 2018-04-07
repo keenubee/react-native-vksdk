@@ -29,7 +29,7 @@
 #import "VKJSONOperation.h"
 #import "VKRequestsScheduler.h"
 
-#define SUPPORTED_LANGS_ARRAY @[@"ru", @"en", @"ua", @"es", @"fi", @"de", @"it"]
+#define SUPPORTED_LANGS_ARRAY @[@"ru", @"en", @"uk", @"es", @"fi", @"de", @"it"]
 
 void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
     if (!block) {
@@ -45,6 +45,12 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
 @interface VKRequestTiming () {
     NSDate *_parseStartTime;
 }
+@end
+
+@interface VKError (CaptchaRequest)
+- (void)notifyCaptchaRequired;
+
+- (void)notifyAuthorizationFailed;
 @end
 
 @implementation VKRequestTiming
@@ -77,6 +83,10 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
 - (NSTimeInterval)totalTime {
     return [_finishTime timeIntervalSinceDate:_startTime];
 }
+@end
+
+@interface VKAccessToken (HttpsRequired)
+- (void)setAccessTokenRequiredHTTPS;
 @end
 
 @interface VKRequest () {
@@ -128,7 +138,7 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
     return dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
 }
 
-#pragma mark Init
+#pragma mark Deprecated
 
 + (instancetype)requestWithMethod:(NSString *)method andParameters:(NSDictionary *)parameters andHttpMethod:(NSString *)httpMethod {
     return [self requestWithMethod:method andParameters:parameters];
@@ -144,11 +154,22 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
 }
 
 + (instancetype)requestWithMethod:(NSString *)method andParameters:(NSDictionary *)parameters modelClass:(Class)modelClass {
+    return [self requestWithMethod:method parameters:parameters modelClass:modelClass];
+}
+
+#pragma mark Init
+
++ (instancetype)requestWithMethod:(NSString *)method
+                       parameters:(NSDictionary *)parameters {
+    return [self requestWithMethod:method parameters:parameters modelClass:nil];
+}
+
++ (instancetype)requestWithMethod:(NSString *)method parameters:(NSDictionary *)parameters modelClass:(Class)modelClass {
     VKRequest *newRequest = [self new];
     //Common parameters
     newRequest.parseModel = modelClass != nil;
     newRequest.requestTimeout = 25;
-
+    
     newRequest.methodName = method;
     newRequest.methodParameters = parameters;
     newRequest.httpMethod = @"POST";
@@ -441,10 +462,14 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
 - (void)setupProgress:(VKHTTPOperation *)operation {
     if (self.progressBlock) {
         [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
-            self.progressBlock(VKProgressTypeUpload, totalBytesWritten, totalBytesExpectedToWrite);
+            if (self.progressBlock) {
+                self.progressBlock(VKProgressTypeUpload, totalBytesWritten, totalBytesExpectedToWrite);
+            }
         }];
         [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
-            self.progressBlock(VKProgressTypeDownload, totalBytesRead, totalBytesExpectedToRead);
+            if (self.progressBlock) {
+                self.progressBlock(VKProgressTypeDownload, totalBytesRead, totalBytesExpectedToRead);
+            }
         }];
     }
 }
@@ -471,7 +496,7 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
     //Then we generate "request string" /method/{METHOD_NAME}?{GET_PARAMS}{POST_PARAMS}
     NSString *requestString = [NSString stringWithFormat:@"/method/%@?%@", _methodName, [paramsArray componentsJoinedByString:@"&"]];
     requestString = [requestString stringByAppendingString:token.secret];
-    return [requestString MD5];
+    return [requestString vks_md5];
 }
 
 - (BOOL)processCommonError:(VKError *)error {
@@ -482,7 +507,7 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
         }
         if (error.apiError.errorCode == 5) {
             vksdk_dispatch_on_main_queue_now(^{
-                [error.apiError notiftAuthorizationFailed];
+                [error.apiError notifyAuthorizationFailed];
             });
             return NO;
         }
@@ -525,7 +550,11 @@ void vksdk_dispatch_on_main_queue_now(void(^block)(void)) {
 - (NSString *)language {
     NSString *lang = self.requestLang;
     if (self.useSystemLanguage) {
-        NSString *sysLang = [[[[[NSLocale preferredLanguages] firstObject] componentsSeparatedByString:@"_"] firstObject] lowercaseString];
+        static NSString *sysLang = nil;
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            sysLang = [[[[[NSLocale preferredLanguages] firstObject] componentsSeparatedByCharactersInSet:[NSCharacterSet punctuationCharacterSet]] firstObject] lowercaseString];
+        });
         if ([SUPPORTED_LANGS_ARRAY containsObject:sysLang]) {
             lang = sysLang;
         }

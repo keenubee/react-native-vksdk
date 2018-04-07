@@ -22,7 +22,6 @@
 //
 //  --------------------------------------------------------------------------------
 //
-//  Modified by Ruslan Kavetsky
 
 #import "VKAccessToken.h"
 #import "VKSdk.h"
@@ -48,6 +47,7 @@ static NSString *const PERMISSIONS = @"permissions";
 
 }
 @property(nonatomic, readwrite, copy) NSString *accessToken;
+
 @end
 
 @implementation VKAccessToken
@@ -214,12 +214,12 @@ static NSString *const PERMISSIONS = @"permissions";
     return [[VKAccessTokenMutable alloc] initWithVKAccessToken:self];
 }
 
-/**
- Simple keychain requests
- Source: http://stackoverflow.com/a/5251820/1271424
- */
-
 + (NSMutableDictionary *)getKeychainQuery:(NSString *)service {
+    /**
+     Simple keychain requests
+     Source: http://stackoverflow.com/a/5251820/1271424
+     */
+    
     return [@{(__bridge id) kSecClass : (__bridge id) kSecClassGenericPassword,
             (__bridge id) kSecAttrService : service,
             (__bridge id) kSecAttrAccount : service,
@@ -230,7 +230,8 @@ static NSString *const PERMISSIONS = @"permissions";
     NSMutableDictionary *keychainQuery = [self getKeychainQuery:service];
     SecItemDelete((__bridge CFDictionaryRef) keychainQuery);
     keychainQuery[(__bridge id) kSecValueData] = [NSKeyedArchiver archivedDataWithRootObject:token];
-    SecItemAdd((__bridge CFDictionaryRef) keychainQuery, NULL);
+    OSStatus status = SecItemAdd((__bridge CFDictionaryRef) keychainQuery, NULL);
+    NSAssert(status == errSecSuccess, @"Unable to store VKAccessToken in keychain. OSStatus: %i. Error Description: https://www.osstatus.com/search/results?platform=all&framework=all&search=%i or https://developer.apple.com/reference/security/1658642-keychain_services", status, status);
 }
 
 + (VKAccessToken *)load:(NSString *)service {

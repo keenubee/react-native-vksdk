@@ -60,6 +60,7 @@
 static NSArray *labels = nil;
 static NSString *const USERS_GET = @"users.get";
 static NSString *const FRIENDS_GET = @"friends.get";
+static NSString *const AUDIO_GET = @"audio.get";
 static NSString *const FRIENDS_GET_FULL = @"friends.get with fields";
 static NSString *const USERS_SUBSCRIPTIONS = @"Pavel Durov subscribers";
 static NSString *const UPLOAD_PHOTO = @"Upload photo to wall";
@@ -78,7 +79,7 @@ static NSString *const ALL_USER_FIELDS = @"id,first_name,last_name,sex,bdate,cit
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (!labels)
-        labels = @[USERS_GET, USERS_SUBSCRIPTIONS, FRIENDS_GET, FRIENDS_GET_FULL, UPLOAD_PHOTO, UPLOAD_PHOTO_ALBUM, UPLOAD_PHOTOS, TEST_CAPTCHA, CALL_UNKNOWN_METHOD, TEST_VALIDATION, MAKE_SYNCHRONOUS, SHARE_DIALOG, TEST_ACTIVITY, TEST_APPREQUEST];
+        labels = @[USERS_GET, USERS_SUBSCRIPTIONS, AUDIO_GET, FRIENDS_GET, FRIENDS_GET_FULL, UPLOAD_PHOTO, UPLOAD_PHOTO_ALBUM, UPLOAD_PHOTOS, TEST_CAPTCHA, CALL_UNKNOWN_METHOD, TEST_VALIDATION, MAKE_SYNCHRONOUS, SHARE_DIALOG, TEST_ACTIVITY, TEST_APPREQUEST];
     return labels.count;
 }
 
@@ -96,7 +97,7 @@ static NSString *const ALL_USER_FIELDS = @"id,first_name,last_name,sex,bdate,cit
         [self callMethod:[[VKApi users] get:@{VK_API_FIELDS : @"first_name, last_name, uid, photo_100", VK_API_USER_IDS : @[@(1), @(2), @(3)]}]];
     }
     else if ([label isEqualToString:USERS_SUBSCRIPTIONS]) {
-        [self callMethod:[VKRequest requestWithMethod:@"users.getFollowers" andParameters:@{VK_API_USER_ID : @"1", VK_API_COUNT : @(1000), VK_API_FIELDS : ALL_USER_FIELDS} modelClass:[VKUsersArray class]]];
+        [self callMethod:[VKRequest requestWithMethod:@"users.getFollowers" parameters:@{VK_API_USER_ID : @"1", VK_API_COUNT : @(1000), VK_API_FIELDS : ALL_USER_FIELDS} modelClass:[VKUsersArray class]]];
     }
     else if ([label isEqualToString:UPLOAD_PHOTO]) {
         [self uploadPhoto];
@@ -118,14 +119,17 @@ static NSString *const ALL_USER_FIELDS = @"id,first_name,last_name,sex,bdate,cit
         [self callMethod:friendsRequest];
     }
     else if ([label isEqualToString:CALL_UNKNOWN_METHOD]) {
-        [self callMethod:[VKRequest requestWithMethod:@"I.am.Lord.Voldemort" andParameters:nil]];
+        [self callMethod:[VKRequest requestWithMethod:@"I.am.Lord.Voldemort" parameters:nil]];
     }
     else if ([label isEqualToString:TEST_VALIDATION]) {
-        [self callMethod:[VKRequest requestWithMethod:@"account.testValidation" andParameters:nil]];
+        [self callMethod:[VKRequest requestWithMethod:@"account.testValidation" parameters:nil]];
     }
     else if ([label isEqualToString:MAKE_SYNCHRONOUS]) {
         VKUsersArray *users = [self loadUsers];
         NSLog(@"users %@", users);
+    }
+    else if ([label isEqualToString:AUDIO_GET]) {
+        [self callMethod:[VKRequest requestWithMethod:@"audio.get" parameters:nil modelClass:[VKAudios class]]];
     }
     else if ([label isEqualToString:SHARE_DIALOG]) {
 
@@ -150,7 +154,7 @@ static NSString *const ALL_USER_FIELDS = @"id,first_name,last_name,sex,bdate,cit
 #else
         [activityViewController setCompletionHandler:nil];
 #endif
-        if (VK_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0")) {
+        if ([VKUtil isOperatingSystemAtLeastIOS8]) {
             UIPopoverPresentationController *popover = activityViewController.popoverPresentationController;
             popover.sourceView = self.view;
             popover.sourceRect = [tableView rectForRowAtIndexPath:indexPath];
@@ -158,7 +162,7 @@ static NSString *const ALL_USER_FIELDS = @"id,first_name,last_name,sex,bdate,cit
         [self presentViewController:activityViewController animated:YES completion:nil];
     }
     else if ([label isEqualToString:TEST_APPREQUEST]) {
-        [self callMethod:[VKRequest requestWithMethod:@"apps.sendRequest" andParameters:@{@"user_id" : @45898586, @"text" : @"Yo ho ho", @"type" : @"request", @"name" : @"I need more gold", @"key" : @"more_gold"}]];
+        [self callMethod:[VKRequest requestWithMethod:@"apps.sendRequest" parameters:@{@"user_id" : @45898586, @"text" : @"Yo ho ho", @"type" : @"request", @"name" : @"I need more gold", @"key" : @"more_gold"}]];
 
     }
 }
