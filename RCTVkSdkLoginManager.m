@@ -218,8 +218,7 @@ RCT_EXPORT_METHOD(getFriendsListWithFields:(NSString *)userFields callback:(RCTR
         credentials = @{
                         @"token" : token.accessToken,
                         @"userId" : token.userId,
-                        @"permissions" : token.permissions,
-                        @"email" : token.email
+                        @"permissions" : token.permissions
                         };
     }
     
